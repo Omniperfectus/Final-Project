@@ -1,0 +1,171 @@
+//
+// Program Name: 	textAnalyzer
+// File(s): 		main.cpp, main.h, utils.cpp, utils.h, [text.dat]
+// Authors: 		Jereme Tarr, Jordan Adkins, Zack Hawks
+// Class: 			Computer Science 1020 - P70, MW 6:15 - 9:15 PM
+// Date: 			04/24/2016
+// Version: 		1.1
+//
+// In This Version: 		Building Program
+// In This Subversion: 		Build Program Infrastructure with File Handling
+// In the Last Subversion:  N/A 
+//							
+// 
+// Functionality Queue: 
+// [ Open .dat file w/ Error Handling ]
+// [ Write diagnostic.dat file handling and writing ]
+// [  ]
+// [ Initialize map data structure for storing ]
+// [ command line args for reading in .dat file name ]
+//
+
+/* 
+PROGRAM DESCRIPTION:
+
+Program will read in any length of text from a .dat file [ text.dat ].  Both 
+words and individual characters will be parsed and counted to allow statistical 
+analysis.  Program will give the user options to view reports on the gathered 
+statistics using command lines. 
+
+NOTE:
+Before executing program, please make sure that you have a file to read from (e.g. text.dat)
+and a file to write diagnostic logs to (e.g. diagnostic.dat) in the same directory as the
+program.
+*/
+
+#include <iostream>
+// #include <cstddef> 			// NULL
+#include <cstdlib> 			// exit
+// #include <ctype.h>			// toLower
+#include <fstream> 				// ifStream and ofStream
+// #include <string>			// getline()
+// #include <sstream>			// isstringstream
+#include <stdio.h> 			// printf, scanf, puts, NULL, difftime
+#include <time.h>			// difftime
+#include <unistd.h>			// usleep
+#include <vector>
+
+// When not commented out, allows debugging content to be written out to a 
+// diagnostic.dat file
+#define _DEBUGGER_			
+							
+
+#include "main1-1.h"		
+#include "utils.h"
+
+using namespace std;
+
+int main() {
+	// Local Variables
+	time_t start_t;		// start time of program
+	time_t end_t;		// recorded end time
+	double diff_t;		// difference between start_t & end_t
+	string cTime;		// current runtime formatted as text
+
+	string 	fileName;			// used to store the name of the .dat file containing text
+	string 	debuggerFileName;	// name of the debugger file (i.e., diagnostic.dat)
+	string 	logText;			// string that holds text that will be written to debugger file
+
+	// Capture start time of the program
+	time(&start_t);
+
+	// If debugger is defined in header, open output file stream called debugStream
+	#ifdef _DEBUGGER_
+		clearScreen();
+		cout << "===== FILE TO WRITE DIAGNOSTIC LOGS TO... =====" << endl << endl;
+		debuggerFileName = getFileName();
+		debugStream(debuggerFileName);
+		// Begin log file...
+		logText = "Beginning log file...";
+		makeLog(logText);
+		outStream << "Beginning time of the program is " << start_t << endl;
+	#endif
+
+	welcomeScreen();
+
+
+	// Read in and validate input filename from user
+	clearScreen();
+	cout << "======  FILE TO READ AND ANALYZE  ======" << endl << endl;
+	fileName = getFileName(); // getFileName located in utils.cpp
+	openStream(fileName);
+
+
+	// Close ifstream and ofstream
+	inStream.close();
+	#ifdef _DEBUGGER_
+		outStream.close();
+	#endif
+
+} // Closing brace for main()
+
+
+// =============================  FUNCTIONS  =====================================
+// Listed in Alphabetical Order
+
+// INDEX OF FUNCTIONS
+// void debugStream(string fileName);
+// void makeLog(string logStream);
+// void openStream(string fileName);
+// void welcomeScreen();
+
+
+
+// FUNCTION: debugStream()
+//
+// DESCRIPTION:
+// Gets handed a string which contains the filename log files will be written to.  Opens the file.  
+// If file fails to open, exits the program.  Else, outputs that file was successfully opened
+// #include <cstdlib> for exit()
+void debugStream(string fileName) {
+
+	outStream.open(fileName.c_str());
+	if (outStream.fail()) {
+		cout << "\033[22;31mFailed to open " << fileName << "\033[0m" << endl;
+		cout << "\033[22;31mAborting program...\033[0m" << endl;
+		exit(1);
+	}
+	else {
+		cout << "\033[22;32mSuccessfully opened "<< fileName << "!\033[0m" << endl << endl;
+	}
+}
+
+
+
+void makeLog(string logStream) {
+	outStream << logStream << endl;
+}
+
+
+
+
+// FUNCTION: openStream()
+//
+// DESCRIPTION:
+// Gets handed a string which contains the filename to open.  Opens the file.  If file fails to 
+// open, exits the program.  Else, outputs that file was successfully opened
+// #include <cstdlib> for exit()
+void openStream(string fileName) {
+
+	inStream.open(fileName.c_str());
+	if (inStream.fail()) {
+		cout << "\033[22;31mFailed to open " << fileName << "\033[0m" << endl;
+		cout << "\033[22;31mAborting program...\033[0m" << endl;
+		exit(1);
+	}
+	else {
+		cout << "\033[22;32mSuccessfully opened "<< fileName << "!\033[0m" << endl << endl;
+	}
+}
+
+
+void welcomeScreen() {
+	clearScreen();
+	cout << "\033[22;32m====== Welcome to textAnalyzer! ======\033[0m" << endl << endl;
+	cout << "This program will analyze any text that you have stored\n";
+	cout << "in a .dat file." << endl << endl;
+
+	cout << "loading..." << endl;
+	progPause(6);
+
+}

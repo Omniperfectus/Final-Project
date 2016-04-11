@@ -1,0 +1,26 @@
+// Version: 1.1
+
+#pragma once
+// #include <algorithm>		// find
+// #include <iostream>		// cin, cout
+// #include <sstream>		// isstringstream
+// #include <string>		// string
+#include <vector>			
+
+using namespace std;
+
+struct Word {
+	string 	wordName;		// the word itself
+	int 	numChars;		// number of characters in word
+	int 	count;			// number of times word is used
+};
+
+// CONSTANTS
+ifstream inStream;
+ofstream outStream;
+
+// FUNCTION PROTOTYPES
+void debugStream(string fileName);	// Opens the debugger file stream
+void makeLog(string logStream);			// Writes a string of text to the log file
+void openStream(string fileName);		// Opens input stream from text file
+void welcomeScreen();
