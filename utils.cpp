@@ -1,0 +1,378 @@
+#include <iostream>		// cin
+#include <termios.h> 	// getch()
+#include <unistd.h> 	// getch()
+#include <climits>		// INT_MAX
+#include <cstdio>		// getchar()
+#include <cstdlib>		// exit()
+#include <sstream>		// stringstream
+#include <fstream>		// ifstream, ofstream
+#include "utils.h"
+
+using namespace std;
+
+// FUNCTION: clearScreen()
+//
+// PARAMETERS: None
+//
+// DESCRIPTION:
+// Outputs 45 new, empty lines when called.  This serves to scroll
+// all old data off of the top of the screen.
+void clearScreen() {
+	for (int i=0; i<45; i++) {
+		cout << endl;
+	}
+}
+
+// FUNCTION: clearScreen() [Overloaded]
+//
+// PARAMETERS: int i, the number of lines you would like clearScreen()
+// to output
+//
+// DESCRIPTION:
+// This version of clearScreen is handed an integer, which corresponds to the exact number of blank
+// lines the programmer would like output when the function is called. Utilizing this version of
+// clearScreen() allows better control over the spacing between new and old data.
+void clearScreen(int i) {
+	int j;
+
+	for (j=0; j<i; j++) {
+		cout << endl;
+	}
+}
+
+// Function captures any key pressed by the user, essentially making the "press
+// any key to continue" functionality possible.
+int getch() {
+	cin.clear();
+	int ch;
+	struct termios oldt;
+	struct termios newt;
+	tcgetattr(STDIN_FILENO, &oldt); /*store old settings */
+	newt = oldt; /* copy old settings to new settings */
+	newt.c_lflag &= ~(ICANON | ECHO); /* make one change to old settings in new settings */
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt); /*apply the new settings immediatly */
+    cin.ignore();
+	ch = getchar(); /* standard getchar call */
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt); /*reapply the old settings */
+	return ch; /*return received char */
+}
+
+
+
+
+
+
+// ==============================	I/0 FUNCTIONS	================================= //
+
+
+// FUNCTION: checkForFile(fileName)
+// DESCRIPTION:
+// Checks the local directory in the linux server to see if there is a file by the called name
+// using the ifstream instream.good() method of validation.  If the file is good, returns true.
+// If the file is not good, returns false.  The argument passed to the function is the fileName
+// variable, which holds the name of the file to be checked for.
+// PARENT FUNCTION: Called by getFileName()
+bool checkForFile(string fileName) {
+	ifstream inStream;
+	ofstream outStream;
+
+	inStream.open(fileName.c_str());
+	if (! inStream) {
+		return(false);
+	}
+	else if (inStream.good()) {
+		inStream.close();
+		return (true);
+	}
+	else {
+		return (false);
+	}
+	inStream.close();
+}
+
+// FUNCTION: checkForInput()
+//
+// DESCRIPTION:
+// This function is handed a new string that was either populated with new data by the user, or
+// left blank. If data string is left blank, function returns a false, allowing calling function to
+// avoid overwriting old data with NULL. If new data is found in the string, the function returns a
+// true and the parent function can save the newly input data over top of the old data.
+bool checkForDataInput(string dataString) {
+
+	if (dataString.empty()) {
+		return (false);
+	}
+
+	else {
+		return(true);
+	}
+}
+
+// FUNCTION: getFileName()
+//
+// DESCRIPTION:
+// Prompts user for a file name to be uploaded by the program, then checks the local directory
+// for the given file.  In the event that the file is not found, getFile() will allow the user
+// to try again, or opt to quit, thus ending the program.
+// Parent Function: Called from Main
+// CHILD FUNCTIONS: clearScreen(), checkForFile()
+string getFileName() {
+
+	//Local Variables
+	string fileName;
+	char YorN;
+	bool advanceToken = false;
+
+	//Prompt user to input file name.  Store in string variable fileName.  Mirror file name that the
+	//user input and ensure that it's correct.  If not, loop back around and try again.  Any user
+	// input besides Y, y, N, or n is read as invalid input, causing the function to loop back
+	// around and try again.
+
+	// Outer do-while loop that handles file name input, and file checker loops
+	do {
+		// Inner do-while loop that only handles file name input loop
+		do {
+			cout << "Please input file name (e.g. filename.dat)" << endl << endl;
+			cout << "FILENAME: ";
+			cin >> fileName;
+			clearScreen();
+			cout << endl << "YOU HAVE ENTERED: " << fileName << endl << endl;
+			cout << "Is this correct?" << endl << endl;
+			cout << "PLEASE PRESS: " << endl;
+			cout << "\'Y\' or \'y\' for YES " << endl;
+			cout << "\'N\' or \'n\' for NO " << endl;
+			cout << "\'Q\' or \'q\' to QUIT the Program\n";
+			cin >> YorN; // char YorN stores the user's input of Y for Yes, N for No, or Q for quit
+
+			cin.clear();
+			cin.ignore(INT_MAX, '\n');
+
+			if (YorN == 'Y' || YorN == 'y') {
+				advanceToken = true;
+			}
+			else if (YorN == 'N' || YorN == 'n') {
+				advanceToken = false;
+			}
+			//User has input "Q", indicating that they'd like to quit attempting to input file names
+			else if (YorN == 'Q' || YorN == 'q') {
+				cout << "You have chosen to exit the porgram\n" << endl;
+				cout << "Goodbye!\n";
+				exit (1);
+			}
+			else {
+				cout << endl << "\033[22;31mI'm sorry, you have entered an invalid response.\033[0m";
+				cout << endl << "Please try again\n.";
+				advanceToken = false;
+			}
+		} while (advanceToken == false); // End Top Half Do-While Loop
+
+		//Check local directory for file using checkForFile Function
+		clearScreen();
+		if (true == checkForFile(fileName)) { // checkForFile should return "True" if file is found
+			cout << endl << "File succesfully found!\n";
+			advanceToken = true;
+		}
+		else {
+			cout << endl << "\033[22;31mI'm sorry, that file name wasn't found\033[0m";
+			cout << "\033[22;31m in the local directory.\033[0m" << endl;
+			cout << "Please try again \n" << endl;
+			advanceToken = false;
+		}
+	} while (advanceToken == false); //End outer Do-While Function encompassing file name input
+	//loop as well as check for file loop.
+
+	return (fileName);
+}
+/*
+// FUNCTION: openStream()
+//
+// DESCRIPTION:
+// Gets handed a string which contains the filename to open.  Opens the file.  If file fails to
+// open, exits the program.  Else, outputs that file was successfully opened
+void openStream(string fileName) {
+	ifstream inStream;
+	ofstream outStream;
+
+	inStream.open(fileName.c_str());
+	if (inStream.fail()) {
+		cout << "\033[22;31mFailed to open contacts.dat\033[0m" << endl;
+		cout << "\033[22;31mAborting program...\033[0m" << endl;
+		exit(1);
+	}
+	else {
+		cout << "\033[22;32mSuccessfully opened "<< fileName << "!\033[0m" << endl << endl;
+	}
+}
+*/
+
+
+
+// ========================= STRING CONVERSION FUNCTIONS ============================ //
+
+// Reads in a character named "n", converts it to a string, and returns it as a string named "s"
+string charToString(char n) {
+     char s[80];
+     sprintf(s, "%d", n);
+     return(s);
+}
+
+// Reads in an integer named "n", converts it to a string, and returns it as a string named "s"
+string intToString(int n) {
+     char s[80];
+     sprintf(s, "%d", n);
+     return(s);
+}
+// FUNCTION: stringToInt
+//
+// DESCRIPTION:
+// Function gets handed a string (hopefully containing a number or numbers) which
+// it converts to an integer and returns.  If the function is unable to convert
+// the string to an integer, it returns -1.
+int stringToInt(string s) {
+	// Variables
+	int userChoice;
+
+	// stringstream used for the conversion initialized with the contents of Text
+	stringstream convert(s);
+
+	//give the value to Result using the characters in the string
+	if (!(convert >> userChoice)) {
+    //if that fails set Result to -1, which will trigger the loop to retry input
+    userChoice = -1;
+	}
+	return(userChoice);
+}
+// FUNCTION: stringToLower
+//
+// DESCRIPTION:
+// Gets handed a string, which the function goes through, character by character, converting to
+// lower case.  Returns a string as all lowercase letters.
+string stringToLower(string s) {
+	int i;
+
+	for (i=0; i <= s.size(); i++) {
+		s[i] = tolower(s[i]);
+	}
+	return(s);
+}
+
+// ========================= TIME FUNCTIONS ============================ //
+
+/*
+Require the following variables to be declared inside main()
+	time_t start_t;		// start time of program
+	time_t end_t;		// recorded end time
+	double diff_t;		// difference between start_t & end_t
+	string cTime;		// current runtime formatted as text
+
+Require the following libraries to be declared
+	#include <stdio.h> 			// difftime
+	#include <time.h>			// difftime
+	#include <unistd.h>			// usleep (progPause() only)
+
+FUNCTION CALLS
+	time(&start_t);									// Capture start time of the program
+	cTime = currentTime(start_t, end_t, diff_t);	// Get current runtime formatted as string
+	getTime(start_t, end_t, diff_t);				// Update diff_t
+	progPause(2);									// Pause program for 2 seconds
+*/
+
+// FUNCTION: currentTime
+//
+// DESCRIPTION:
+// Calls children functions getTime() and formatTime() in order to get a single, formatted string
+// that displays how long the program has been running.
+// PARENT FUNCTION: Called in main()
+string currentTime(time_t& start_t, time_t& end_t, double& diff_t) {
+	string currentTime;
+
+	getTime(start_t, end_t, diff_t);
+	currentTime = formatTime(diff_t);
+
+	return(currentTime);
+}
+
+// FUNCTION: formatTime()
+//
+// DESCRIPTION:
+// Gets handed a double, which corresponds to the number of seconds the program has been running
+// (diff_t).  Converts that into the proper format of HH:MM:SS, which is returned as a string.
+// PARENT FUNCTION: Called by currentTime()
+string formatTime(double numSecs) {
+	// Local Variables
+	char timeString[8];
+	int hours;
+	string hrsString;
+	int minutes;
+	string minString;
+	int seconds;
+	string secString;
+	string retString;
+
+	// Convert seconds to hours, minutes, and seconds
+	// Hours
+    hours = numSecs/3600;				// 3600 seconds = 1 hour
+    hrsString = intToString(hours);		// Convert hours to string
+    if (hours < 10) {
+    	hrsString = "0" + hrsString;	// Add 0 at front of string if hours < 10
+    }
+
+ 	// Update remaining seconds after dividing by hours
+    seconds = (int)numSecs % 3600;
+    // Minutes
+    minutes = seconds/60;
+    minString = intToString(minutes);
+    if (minutes < 10) {
+    	minString = "0" + minString;
+    }
+
+    // Update remaining seconds after dividing by minutes
+    seconds = (int)numSecs % 60;
+
+    // Seconds
+    secString = intToString(seconds);
+    if (seconds < 10) {
+    	secString = "0" + secString;
+    }
+
+    // Concatnate all strings into one
+    retString = hrsString + ":" + minString + ":" + secString;
+
+    return(retString);
+}
+
+// FUNCTION: getTime()
+//
+// DESCRIPTION:
+// This function is passed the start time of the program (recorded on program launch in start_t),
+// the current or end time (end_t), and the resulting difference.  The difference (diff_t) ends
+// up being the total runtime (in seconds) that the program has been running as of the call time of
+// this function.  Since all parameters are call by reference, changes to end_t and diff_t are
+// automatically updated in main while the function itself has no return value (void type).
+// NOTE:
+// In order for the function to work, start time must be set at the beginning of the program by
+// writing "time(&start_t);".  Also, all parameter variables should be defined in main().
+// HEADERS: <time.h> <stdio.h>
+// PARENT FUNCTION: Called by currentTime()
+void getTime(time_t& start_t, time_t& end_t, double& diff_t) {
+
+	// Set current time to end time
+	time(&end_t);
+	// Get difference between start time and end time, save to diff_t
+	diff_t = difftime(end_t, start_t);
+}
+
+// FUNCTION: progPause(int)
+//
+// DESCRIPTION:
+// This function is passed an integer, which corresponds to the number of seconds that the caller
+// would like to pause the program for.
+//
+// HEADERS:  <unistd.h>
+void progPause(int numSecs) {
+	int microSecs;
+
+	microSecs = (numSecs * 1000000);
+
+   		usleep(microSecs);
+}
